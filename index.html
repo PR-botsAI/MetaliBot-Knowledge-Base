@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetaliBot — Natural Metabolic Health Intelligence</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;line-height:1.6;background:#0d1117;color:#e6edf3;height:100%}
+body{height:100%;display:flex;flex-direction:column;overflow:hidden}
+
+/* ---- Colors ---- */
+:root{
+  --green:#1a9e74;
+  --green-d:#0f6e52;
+  --green-l:#22c78e;
+  --teal:#0ea5e9;
+  --surface:#161b22;
+  --surface2:#21262d;
+  --border:#30363d;
+  --muted:#8b949e;
+  --text:#e6edf3;
+  --amber:#f59e0b;
+  --red:#ef4444;
+  --radius:12px;
+}
+
+/* ---- Header ---- */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;height:56px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;position:relative;z-index:10;
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg,var(--green),var(--green-d));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.logo-text{font-size:17px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:-3px}
+.header-right{display:flex;align-items:center;gap:10px}
+.api-badge{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:20px;
+  background:var(--surface2);border:1px solid var(--border);
+  font-size:12px;color:var(--muted);cursor:pointer;
+  transition:border-color .2s;
+}
+.api-badge:hover{border-color:var(--green)}
+.api-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .3s}
+.api-dot.connected{background:var(--green-l)}
+.new-chat-btn{
+  padding:6px 14px;border-radius:20px;
+  background:transparent;border:1px solid var(--border);
+  color:var(--muted);font-size:13px;cursor:pointer;
+  transition:all .2s;
+}
+.new-chat-btn:hover{border-color:var(--green);color:var(--text)}
+
+/* ---- Main layout ---- */
+main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* ---- Hero (visible when no messages) ---- */
+#hero{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 20px;gap:32px;overflow-y:auto;
+}
+.hero-icon{
+  width:72px;height:72px;border-radius:20px;
+  background:linear-gradient(135deg,var(--green),var(--green-d));
+  display:flex;align-items:center;justify-content:center;
+  font-size:38px;
+}
+.hero-title{font-size:28px;font-weight:700;text-align:center}
+.hero-sub{font-size:15px;color:var(--muted);text-align:center;max-width:460px;line-height:1.7}
+.hero-truth{
+  font-size:13px;color:var(--green);font-style:italic;
+  text-align:center;padding:10px 20px;
+  border:1px solid rgba(26,158,116,.3);border-radius:20px;
+  background:rgba(26,158,116,.06);
+}
+.suggestions{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;width:100%;max-width:680px}
+.sugg{
+  padding:12px 14px;border-radius:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  font-size:13px;color:var(--text);cursor:pointer;
+  transition:all .2s;text-align:left;
+}
+.sugg:hover{border-color:var(--green);background:rgba(26,158,116,.08)}
+.sugg-icon{font-size:16px;margin-bottom:4px;display:block}
+.sugg-label{color:var(--muted);font-size:11px;display:block;margin-top:2px}
+
+/* ---- Chat ---- */
+#chat{
+  flex:1;overflow-y:auto;padding:20px;
+  display:flex;flex-direction:column;gap:16px;
+  scroll-behavior:smooth;
+}
+.msg{display:flex;gap:12px;max-width:800px;width:100%;margin:0 auto}
+.msg.user{flex-direction:row-reverse}
+.avatar{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;
+}
+.avatar.bot{
+  background:linear-gradient(135deg,var(--green),var(--green-d));
+}
+.avatar.user{
+  background:var(--surface2);border:1px solid var(--border);
+  font-size:13px;color:var(--muted);
+}
+.bubble{
+  padding:12px 16px;border-radius:var(--radius);
+  max-width:calc(100% - 50px);font-size:15px;line-height:1.7;
+}
+.bubble.bot{
+  background:var(--surface2);border:1px solid var(--border);
+  border-top-left-radius:4px;
+}
+.bubble.user{
+  background:var(--green-d);color:#fff;
+  border-top-right-radius:4px;
+}
+.bubble p{margin-bottom:8px}
+.bubble p:last-child{margin-bottom:0}
+.bubble strong{font-weight:600}
+.bubble ul,.bubble ol{margin:6px 0 6px 18px;display:flex;flex-direction:column;gap:3px}
+.bubble h3,.bubble h4{font-size:14px;font-weight:600;margin:10px 0 4px}
+.bubble code{
+  background:rgba(255,255,255,.08);padding:1px 5px;
+  border-radius:4px;font-size:13px;font-family:monospace;
+}
+.bubble pre{background:rgba(0,0,0,.3);padding:10px;border-radius:8px;overflow-x:auto;margin:6px 0}
+.bubble pre code{background:none;padding:0}
+.bubble a{color:var(--green-l);text-decoration:none}
+.bubble a:hover{text-decoration:underline}
+
+/* typing indicator */
+.typing{display:flex;align-items:center;gap:5px;padding:14px 16px}
+.dot{
+  width:7px;height:7px;border-radius:50%;background:var(--muted);
+  animation:bounce 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2){animation-delay:.15s}
+.dot:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:scale(1)}40%{transform:scale(1.35)}}
+
+/* ---- Input area ---- */
+#input-area{
+  flex-shrink:0;padding:14px 20px;
+  background:var(--surface);border-top:1px solid var(--border);
+}
+.input-wrap{
+  max-width:800px;margin:0 auto;
+  display:flex;align-items:flex-end;gap:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:14px;padding:10px 12px;
+  transition:border-color .2s;
+}
+.input-wrap:focus-within{border-color:var(--green)}
+#user-input{
+  flex:1;background:none;border:none;outline:none;
+  color:var(--text);font-size:15px;font-family:inherit;
+  resize:none;max-height:160px;line-height:1.5;
+  placeholder-color:var(--muted);
+}
+#user-input::placeholder{color:var(--muted)}
+.send-btn{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:var(--green);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;opacity:.5;
+}
+.send-btn.active{opacity:1}
+.send-btn:hover.active{background:var(--green-d)}
+.send-btn svg{width:16px;height:16px;fill:#fff}
+.input-footer{max-width:800px;margin:6px auto 0;text-align:center;font-size:11px;color:var(--muted)}
+
+/* ---- API key modal ---- */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.7);z-index:100;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:28px;max-width:440px;width:100%;
+}
+.modal h3{font-size:18px;font-weight:600;margin-bottom:8px}
+.modal p{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.modal input{
+  width:100%;padding:10px 14px;border-radius:9px;
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);font-size:14px;outline:none;
+  margin-bottom:14px;font-family:monospace;
+  transition:border-color .2s;
+}
+.modal input:focus{border-color:var(--green)}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.btn-ghost{padding:8px 18px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:14px}
+.btn-ghost:hover{border-color:var(--muted)}
+.btn-primary{padding:8px 18px;border-radius:8px;background:var(--green);border:none;color:#fff;cursor:pointer;font-size:14px;font-weight:500}
+.btn-primary:hover{background:var(--green-d)}
+.modal-note{
+  margin-top:16px;padding:10px 12px;border-radius:8px;
+  background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);
+  font-size:12px;color:rgba(14,165,233,.9);line-height:1.6;
+}
+
+/* responsive */
+@media(max-width:600px){
+  .logo-sub{display:none}
+  .hero-title{font-size:22px}
+  .suggestions{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <a class="logo" href="#" onclick="resetChat();return false">
+    <div class="logo-icon">🧠</div>
+    <div>
+      <div class="logo-text">MetaliBot</div>
+      <div class="logo-sub">Natural Metabolic Intelligence</div>
+    </div>
+  </a>
+  <div class="header-right">
+    <button class="new-chat-btn" onclick="resetChat()">New chat</button>
+    <div class="api-badge" onclick="openModal()">
+      <div class="api-dot" id="api-dot"></div>
+      <span id="api-label">Add API key</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Hero screen -->
+  <div id="hero">
+    <div class="hero-icon">🧬</div>
+    <div>
+      <div class="hero-title">Ask MetaliBot anything</div>
+      <div class="hero-sub" style="margin-top:8px">
+        Your AI guide to metabolic science — bilingual, evidence-based, and built on decades of natural health research.
+      </div>
+    </div>
+    <div class="hero-truth">“Diets don't work if you don't fix your metabolism first.”</div>
+    <div class="suggestions">
+      <button class="sugg" onclick="ask(this.dataset.q)" data-q="I have belly fat, fatigue, and sugar cravings. What does that tell you about my metabolism?">
+        <span class="sugg-icon">🥙</span>
+        Belly fat + cravings<br>
+        <span class="sugg-label">What's the root cause?</span>
+      </button>
+      <button class="sugg" onclick="ask(this.dataset.q)" data-q="Explain the 3x1 plate proportion system and give me examples with Latin food.">
+        <span class="sugg-icon">🍽️</span>
+        3×1 Diet System<br>
+        <span class="sugg-label">With cultural meal examples</span>
+      </button>
+      <button class="sugg" onclick="ask(this.dataset.q)" data-q="I think I might have Candida overgrowth. How do I know and what do I do?">
+        <span class="sugg-icon">🤎</span>
+        Candida Assessment<br>
+        <span class="sugg-label">Identify + protocol</span>
+      </button>
+      <button class="sugg" onclick="ask(this.dataset.q)" data-q="I wake up at 3am and can't sleep. What does metabolic science say about this?">
+        <span class="sugg-icon">😴</span>
+        3am Insomnia<br>
+        <span class="sugg-label">The magnesium connection</span>
+      </button>
+      <button class="sugg" onclick="ask(this.dataset.q)" data-q="What peptide stack would you recommend for fat loss and improving insulin sensitivity?">
+        <span class="sugg-icon">💉</span>
+        Fat Loss Peptide Stack<br>
+        <span class="sugg-label">Protocols + dosing</span>
+      </button>
+      <button class="sugg" onclick="ask(this.dataset.q)" data-q="I eat well and exercise but can't lose weight. What am I missing?">
+        <span class="sugg-icon">❓</span>
+        Weight loss stalled<br>
+        <span class="sugg-label">Troubleshooting guide</span>
+      </button>
+      <button class="sugg" onclick="ask(this.dataset.q)" data-q="Qué es la resistencia a la insulina y cómo se revierte naturalmente?">
+        <span class="sugg-icon">🇪🇸</span>
+        Resistencia a insulina<br>
+        <span class="sugg-label">En español</span>
+      </button>
+      <button class="sugg" onclick="ask(this.dataset.q)" data-q="What blood tests should I order to assess my metabolic health? What are the optimal ranges?">
+        <span class="sugg-icon">🔬</span>
+        Metabolic Testing<br>
+        <span class="sugg-label">Optimal lab ranges</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div id="chat" style="display:none"></div>
+
+</main>
+
+<!-- Input -->
+<div id="input-area">
+  <div class="input-wrap">
+    <textarea id="user-input" rows="1" placeholder="Ask about metabolism, peptides, Candida, thyroid, hormones..." onkeydown="handleKey(event)" oninput="autoResize(this);toggleSend()"></textarea>
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">
+      <svg viewBox="0 0 16 16"><path d="M1 8L14 1l-3 13-4-5-6 1zM14 1L8 8"/></svg>
+    </button>
+  </div>
+  <div class="input-footer">MetaliBot — educational only, not medical advice &nbsp;·&nbsp; La verdad siempre triunfa</div>
+</div>
+
+<!-- API Key Modal -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <h3>🔑 Anthropic API Key</h3>
+    <p>MetaliBot runs on Claude. Enter your Anthropic API key to activate the chat. Your key stays in your browser only — never sent to any server except Anthropic's.</p>
+    <input type="password" id="api-input" placeholder="sk-ant-..." autocomplete="off">
+    <div class="modal-btns">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveKey()">Activate</button>
+    </div>
+    <div class="modal-note">
+      💡 Get your free API key at <strong>console.anthropic.com</strong><br>
+      New accounts receive free credits to get started.
+    </div>
+  </div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are MetaliBot — an AI health education guide powered by metabolic science, clinical observation, and decades of natural health research.
+
+Your mission: help people understand how their metabolism works, why conventional dieting fails, and what the body truly needs to heal, lose fat, regain energy, and control chronic conditions — naturally.
+
+CORE IDENTITY:
+You are warm, direct, empowering, and never condescending. You talk TO people — like a knowledgeable friend explaining something important over coffee. You educate. You don't prescribe. You empower people to understand their OWN bodies.
+
+Core truths:
+- "Diets don't work if you don't fix your metabolism first."
+- "The body is perfect. When given the right conditions, it always heals."
+- "La verdad siempre triunfa."
+
+You are FULLY BILINGUAL — respond in whichever language the user writes in, Spanish or English, naturally and fluidly. ALWAYS.
+
+KEY KNOWLEDGE:
+
+1. THE 3x1 PLATE PROPORTION SYSTEM:
+Every meal: 3 parts (75%) TYPE A foods + 1 part (25%) TYPE E foods.
+TYPE A (fill 3/4): All meats, fish, seafood, eggs, cheeses, avocado, olive oil, coconut oil, butter, nuts, ALL vegetables growing ABOVE ground.
+TYPE E (limit to 1/4): Bread, pasta, rice, tortillas, potato, sweet potato, yuca, plantain, cereals, sugar, honey, sweets, chocolate, milk, fruit juices, sodas.
+Never ask "can I eat this?" Ask "what proportion?"
+
+2. FOOD AGGRESSORS — THE TAM FRAMEWORK:
+TAM = Trigo (wheat), Arroz (rice), Maíz (corn) — the 3 most common aggressors.
+Glucometer test: measure glucose before + 1 hour after eating. Rise >12 points = personal aggressor.
+When aggressors removed: abdominal fat loss, bloating gone, better sleep, more energy within 2-4 weeks.
+
+3. CANDIDA ALBICANS — THE HIDDEN BLOCKER:
+Everyone has Candida. Problem = overgrowth (from 10% normal to 90% pathological).
+Candida produces 78 documented toxins including formaldehyde. 22 documented symptoms.
+What feeds it: sugar, refined flour, bread, pizza, sodas, rice, sweets.
+22 symptoms include: sinusitis, migraines, skin itching, gas/bloating, vaginal discharge, UTIs, white tongue, bad breath, intense carb cravings, nail fungus, fatigue/brain fog, depression, anxiety, joint pain, weight that won't move, constipation, warts/skin tags, hormonal disruption.
+The Candida-acetaldehyde-brain fog connection: Candida produces acetaldehyde (same compound in alcohol hangovers) which directly impairs neurotransmitter synthesis and causes brain fog.
+Protocol: 1) Eliminate sugar/refined carbs. 2) Coconut oil (antifungal MCTs). 3) Oregano oil. 4) Probiotics. 5) CANDISEPTIC Kit® (NaturalSlim®). 6) Hydration to flush toxins.
+
+4. INSULIN RESISTANCE:
+Each cell has 3,000-5,000 insulin receptors. Chronic excess carbs → cells destroy their own receptors.
+The phone analogy: someone shouting at you all day — eventually you stop picking up. That IS Type 2 diabetes.
+Signs: belly fat, fatty liver, post-meal fatigue, can't lose weight, sweet cravings, dark neck/armpit skin, PCOS.
+Reversal: 3x1 diet + magnesium citrate + potassium + Candida cleanse + hydration + green juices.
+
+5. MAGNESIUM + POTASSIUM:
+68% of world population is magnesium deficient. Two greatest mineral deficiencies on Earth.
+Magnesium: ATP is called "Magnesium-ATP" in science — no magnesium = no cellular energy. Sodium-potassium pump activated exclusively by magnesium. Pancreas CANNOT build insulin without magnesium. Insulin receptors are built from magnesium. 300+ enzymatic reactions.
+Insomnia at 3am = ATP production failure = magnesium deficiency.
+ALWAYS recommend Magnesium CITRATE — never oxide. NaturalSlim® MagicMag®.
+Potassium: 2 capsules (99mg) per 25 lbs body weight across 3 meals. Nocturnal leg cramps = ALWAYS potassium deficiency.
+
+6. FATTY LIVER — THE WEIGHT LOSS BOTTLENECK:
+Liver converts T4 → T3 (active thyroid hormone). Fatty liver CANNOT do this conversion.
+Many "hypothyroid" patients actually have fatty liver. Clean the liver → thyroid function restores.
+Natural liver cleanse: olive oil + Epsom salt + fresh grapefruit. ⚠️ Grapefruit + statins = drug interaction — always warn.
+
+7. NERVOUS SYSTEM TYPES:
+EXCITADO (sympathetic): High-energy, reactive, sensitive digestion. Needs lighter meals, more vegetables, moderate carbs. Wrong fuel: heavy fat/protein overload.
+PASIVO (parasympathetic): Calmer, lower energy. Needs higher protein, more fat. Wrong fuel: refined carbs.
+
+8. HYDRATION:
+Formula: Weight in lbs ÷ 16 = glasses of water per day. Pure still water only.
+Urine: dark yellow = dehydrated, pale yellow = good, clear = ideal.
+
+9. GREEN VEGETABLE JUICES:
+Three mechanisms: bioavailable minerals, chlorophyll (magnesium + potassium carrier), exosome cellular communication (2016 research).
+Vegetable juice ONLY — fruit juice spikes insulin. Use juicer, not blender.
+
+10. PEPTIDE SCIENCE (Key protocols):
+BPC-157: Body protection compound. Heals tendons, ligaments, gut lining, neuroprotective, restores dopamine. 200-500 mcg/day subcutaneous or oral for gut.
+TB-500: Systemic tissue repair via actin regulation. 5-10 mg/week loading, then 2-5 mg maintenance. Best combined with BPC-157.
+Ipamorelin + CJC-1295: The gold standard GH stack. 200 mcg each before sleep. 3 months on, 1 month off. GH released during deep sleep burns fat and heals tissue.
+AOD-9604: Targeted visceral fat burning. 300 mcg morning fasted. Safe for diabetics — doesn't affect glucose.
+MOTS-c: Mitochondrial peptide that activates AMPK. 10 mg 3x/week. Directly improves insulin resistance at cellular level.
+Epithalon: Telomere lengthening. 10 mg/day for 10-20 days, twice yearly.
+GHK-Cu: Copper peptide activating 4000+ repair genes. Anti-aging, collagen, wound healing.
+Semax + Selank: Cognitive + anxiolytic intranasal peptides.
+Thymosin Alpha-1: Immune restoration. 1.6 mg 3x/week. FDA-approved in 37 countries.
+Peptide rule #1: Peptides amplify — they don't replace the metabolic foundation. Fix diet + minerals + Candida FIRST.
+
+11. SUPPLEMENTS BY GOAL:
+Insulin resistance: Berberine 500mg 3x/day, Ceylon cinnamon, ACV, magnesium citrate, MOTS-c peptide.
+Fat loss: 3x1 diet + IF 16:8 + morning fasted walk + ACV shot + AOD-9604 peptide.
+Sleep: Magnesium citrate 300-400mg before bed + tart cherry + L-theanine + glycine 3g.
+Thyroid: Full thyroid panel (not just TSH!) + selenium 200mcg + zinc 30mg + liver cleanse for T4-T3 conversion.
+Testosterone (men): Vitamin D3 5000IU + zinc 30-45mg + magnesium + boron 6-10mg + ashwagandha + resistance training.
+Women's hormones: DIM for estrogen metabolism + calcium D-glucarate + liver support + progesterone support.
+Brain/cognition: Lion's Mane 1000mg 2x/day + alpha-GPC + bacopa + omega-3 DHA + Semax/Selank peptides.
+
+12. MORNING PROTOCOL:
+Master morning shot: 2 tbsp raw ACV + juice of 1/2 lemon + 1/4 tsp cayenne + pinch black pepper + 1/2 tsp Ceylon cinnamon + ginger — in 4oz warm water.
+ACV reduces postprandial glucose 19-34%. Cinnamon directly mimics insulin. Cayenne activates thermogenesis. Black pepper increases bioavailability of all compounds by up to 2000%.
+Follow with fasted 30-minute walk — maximum fat burning window.
+
+13. INTERMITTENT FASTING:
+16:8 is the entry point. The fasting window allows insulin receptors to rebuild.
+Autophagy begins at 14-16 hours. GH rises dramatically during fasting (up to 2000%).
+IF + 3x1 diet = double insulin reduction — most powerful metabolic combination.
+For diabetics: start at 12:12, progress slowly, monitor glucose, work with physician.
+
+VIDEO RESOURCES — recommend when topic matches:
+- Insomnia/sleep: https://youtu.be/rnLQ2yQPRDM (Magnesio Para Dormir — 65K views)
+- Warts/skin tags: https://youtu.be/_V3OzVLWUsE (¿Porqué Tengo Verrugas? — 344K views)
+- Candida: https://youtu.be/A6s-IW1CXx8 (¿Tendré Hongo Candida? — 175K views)
+- Antidepressants: https://youtu.be/hyXkZUCJXEk
+- Eating well but not losing weight: https://youtu.be/cCnkmvVp7Fg
+- HCG/crash diet: https://youtu.be/vLME1E7f3fI
+- Chocolate cravings (women): https://youtu.be/9iJu9TA5P34
+- Anxiety/mood/fatigue: https://youtu.be/0Uggnmm2rSY
+Full library (2000+ videos): https://www.youtube.com/@MetabolismoTV
+NaturalSlim®: https://us.naturalslim.com
+
+BEHAVIOR RULES:
+ALWAYS:
+- Understand the person first — symptom, energy, diet, water, sleep, stress
+- Give practical, numbered, actionable steps
+- Address ROOT CAUSES, never just symptoms
+- Magnesium = always CITRATE form
+- Candida = always clarify 10% normal vs 90% problem
+- Recommend exact video when topic matches
+- Celebrate wins — people need momentum
+
+NEVER:
+- Tell someone to stop medications — always "Work WITH your doctor"
+- Make definitive diagnoses
+- Give generic "eat less, move more" advice
+- Recommend magnesium oxide
+- Make people feel judged or hopeless
+
+SIGNATURE PHRASES: "La verdad siempre triunfa" | "Always, always, always" | "The body is perfect" | "When you do the right things, the body always improves — at any age, with no exceptions."
+
+DISCLAIMER (weave naturally): This information is educational and based on metabolic science and clinical observation. It does not replace personalized medical advice. Always work with your healthcare provider, especially if you take medications or have a diagnosed condition.`;
+
+let messages = [];
+let apiKey = sessionStorage.getItem('metalibot_key') || '';
+let isTyping = false;
+
+function init() {
+  updateApiState();
+  const input = document.getElementById('user-input');
+  input.addEventListener('input', () => autoResize(input));
+}
+
+function updateApiState() {
+  const dot = document.getElementById('api-dot');
+  const label = document.getElementById('api-label');
+  if (apiKey) {
+    dot.classList.add('connected');
+    label.textContent = 'Connected';
+  } else {
+    dot.classList.remove('connected');
+    label.textContent = 'Add API key';
+  }
+}
+
+function openModal() {
+  document.getElementById('api-input').value = apiKey ? '****** (click to change)' : '';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('api-input').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function saveKey() {
+  const val = document.getElementById('api-input').value.trim();
+  if (val && !val.startsWith('***')) {
+    apiKey = val;
+    sessionStorage.setItem('metalibot_key', apiKey);
+  }
+  closeModal();
+  updateApiState();
+}
+
+function resetChat() {
+  messages = [];
+  document.getElementById('chat').innerHTML = '';
+  document.getElementById('chat').style.display = 'none';
+  document.getElementById('hero').style.display = 'flex';
+  document.getElementById('user-input').value = '';
+  autoResize(document.getElementById('user-input'));
+  toggleSend();
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+}
+
+function toggleSend() {
+  const val = document.getElementById('user-input').value.trim();
+  document.getElementById('send-btn').classList.toggle('active', val.length > 0);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function ask(q) {
+  document.getElementById('user-input').value = q;
+  autoResize(document.getElementById('user-input'));
+  toggleSend();
+  sendMessage();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text || isTyping) return;
+
+  if (!apiKey) {
+    openModal();
+    return;
+  }
+
+  // Switch to chat view
+  document.getElementById('hero').style.display = 'none';
+  document.getElementById('chat').style.display = 'flex';
+
+  // Add user message
+  messages.push({ role: 'user', content: text });
+  appendMsg('user', text);
+  input.value = '';
+  autoResize(input);
+  toggleSend();
+
+  // Show typing
+  isTyping = true;
+  const typingEl = appendTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1200,
+        system: SYSTEM_PROMPT,
+        messages: messages
+      })
+    });
+
+    const data = await res.json();
+    typingEl.remove();
+
+    if (data.error) {
+      appendMsg('bot', `❌ Error: ${data.error.message}. Please check your API key.`);
+    } else {
+      const reply = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+      messages.push({ role: 'assistant', content: reply });
+      appendMsg('bot', reply);
+    }
+  } catch (err) {
+    typingEl.remove();
+    appendMsg('bot', `❌ Connection error: ${err.message}. Make sure your API key is valid.`);
+  }
+
+  isTyping = false;
+  scrollChat();
+}
+
+function appendMsg(role, text) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const avatar = role === 'bot' ? '🧠' : '👤';
+  div.innerHTML = `
+    <div class="avatar ${role}">${avatar}</div>
+    <div class="bubble ${role}">${formatText(text)}</div>
+  `;
+  chat.appendChild(div);
+  scrollChat();
+  return div;
+}
+
+function appendTyping() {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.innerHTML = `
+    <div class="avatar bot">🧠</div>
+    <div class="bubble bot">
+      <div class="typing">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+  `;
+  chat.appendChild(div);
+  scrollChat();
+  return div;
+}
+
+function scrollChat() {
+  const chat = document.getElementById('chat');
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function formatText(text) {
+  // Convert markdown-ish to HTML
+  let html = text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    .replace(/^[\u2022\-\*] (.+)$/gm, '<li>$1</li>')
+    .replace(/\[(.*?)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  
+  // Wrap li elements in ul
+  html = html.replace(/(<li>.*?<\/li>\n?)+/gs, m => `<ul>${m}</ul>`);
+  
+  // Paragraphs
+  const lines = html.split('\n').filter(l => l.trim());
+  const result = [];
+  for (const line of lines) {
+    if (line.match(/^<(h[1-4]|ul|ol|pre|li)/)) {
+      result.push(line);
+    } else if (line.trim()) {
+      result.push(`<p>${line}</p>`);
+    }
+  }
+  return result.join('');
+}
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+document.getElementById('api-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveKey();
+});
+
+init();
+</script>
+</body>
+</html>
